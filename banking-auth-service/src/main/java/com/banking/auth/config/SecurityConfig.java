@@ -1,6 +1,5 @@
 package com.banking.auth.config;
 
-import com.banking.auth.security.UserDetailsServiceImpl;
 import com.banking.common.security.JwtFilter;
 import com.banking.common.security.JwtService;
 import org.springframework.context.annotation.Bean;
@@ -39,8 +38,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html")
+                .permitAll()
+                .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter(),
                         UsernamePasswordAuthenticationFilter.class)
