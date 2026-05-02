@@ -13,6 +13,7 @@ import com.banking.common.exception.ErrorCode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -32,14 +33,13 @@ public class AccountService {
     private final TransactionEventProducer eventProducer;
     private static final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
-    public AccountService(AccountRepository accountRepository,
-            NotificationService notificationService,
-            TransactionEventProducer eventProducer) {
-        this.accountRepository = accountRepository;
-        this.notificationService = notificationService;
-        this.eventProducer = eventProducer;
-    }
-
+        public AccountService(AccountRepository accountRepository,
+                NotificationService notificationService,
+                @Autowired(required = false) TransactionEventProducer eventProducer) {
+            this.accountRepository = accountRepository;
+            this.notificationService = notificationService;
+            this.eventProducer = eventProducer;
+        }
     @Transactional
     public Account createAccount(String ownerName, AccountType accountType,
             BigDecimal initialDeposit, String ownerId) {
@@ -64,16 +64,18 @@ public class AccountService {
             logger.warn("Failed to send deposit notification for account {}: {}",
                     accountId, e.getMessage());
         }
+    if (eventProducer != null) {
 
-        eventProducer.publish(new TransactionEvent(
-                UUID.randomUUID().toString(),
-                accountId,
-                TransactionEvent.EventType.DEPOSIT,
-                amount,
-                result.getBalance(),
-                "Deposit of " + amount));
+            eventProducer.publish(new TransactionEvent(
+                    UUID.randomUUID().toString(),
+                    accountId,
+                    TransactionEvent.EventType.DEPOSIT,
+                    amount,
+                    result.getBalance(),
+                    "Deposit of " + amount));
 
-        return result;
+                }
+    return result;
     }
 
     @Transactional
@@ -90,6 +92,7 @@ public class AccountService {
             logger.warn("Failed to send withdrawal notification for account {}: {}",
                     accountId, e.getMessage());
         }
+    if (eventProducer != null) {
 
         eventProducer.publish(new TransactionEvent(
                 UUID.randomUUID().toString(),
@@ -99,8 +102,9 @@ public class AccountService {
                 result.getBalance(),
                 "Withdrawal of " + amount));
 
-        return result;
-    }
+            }
+    return result;
+}
 
     @Transactional
     @CacheEvict(value = "accounts", allEntries = true)
@@ -130,22 +134,23 @@ public class AccountService {
             logger.warn("Failed to send transfer notification for accounts {} -> {}: {}",
                     fromAccountId, toAccountId, e.getMessage());
         }
+            if (eventProducer != null) {
+                eventProducer.publish(new TransactionEvent(
+                        UUID.randomUUID().toString(),
+                        fromAccountId,
+                        TransactionEvent.EventType.TRANSFER_OUT,
+                        amount,
+                        resultFrom.getBalance(),
+                        "Transfer to " + toAccountId));
 
-        eventProducer.publish(new TransactionEvent(
-                UUID.randomUUID().toString(),
-                fromAccountId,
-                TransactionEvent.EventType.TRANSFER_OUT,
-                amount,
-                resultFrom.getBalance(),
-                "Transfer to " + toAccountId));
-
-        eventProducer.publish(new TransactionEvent(
-                UUID.randomUUID().toString(),
-                toAccountId,
-                TransactionEvent.EventType.TRANSFER_IN,
-                amount,
-                resultTo.getBalance(),
-                "Transfer from " + fromAccountId));
+                eventProducer.publish(new TransactionEvent(
+                        UUID.randomUUID().toString(),
+                        toAccountId,
+                        TransactionEvent.EventType.TRANSFER_IN,
+                        amount,
+                        resultTo.getBalance(),
+                        "Transfer from " + fromAccountId));
+                }
 
         return List.of(resultFrom, resultTo);
     }

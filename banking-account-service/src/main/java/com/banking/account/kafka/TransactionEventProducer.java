@@ -2,6 +2,7 @@ package com.banking.account.kafka;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@ConditionalOnProperty(name = "spring.kafka.bootstrap-servers")
 public class TransactionEventProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionEventProducer.class);
@@ -21,8 +23,8 @@ public class TransactionEventProducer {
     }
 
     public void publish(TransactionEvent event) {
-        CompletableFuture<SendResult<String, TransactionEvent>> future = kafkaTemplate.send(TOPIC, event.getAccountId(),
-                event);
+        CompletableFuture<SendResult<String, TransactionEvent>> future =
+                kafkaTemplate.send(TOPIC, event.getAccountId(), event);
 
         future.whenComplete((result, ex) -> {
             if (ex != null) {
