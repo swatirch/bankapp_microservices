@@ -14,5 +14,6 @@ public final class ErrorCode {
     public static final String USER_NOT_FOUND = "USER_NOT_FOUND";
     public static final String INVALID_OPERATION = "INVALID_OPERATION";
 
-    private ErrorCode() {}
+    private ErrorCode() {
+    }
 }

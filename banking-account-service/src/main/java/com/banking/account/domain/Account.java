@@ -1,6 +1,7 @@
 package com.banking.account.domain;
 
-import com.banking.common.exception.*;
+import com.banking.common.exception.BankingException;
+import com.banking.common.exception.ErrorCode;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -23,7 +24,6 @@ public class Account implements Serializable {
   private List<Transaction> transactions;
   private String ownerId;
 
-  // ---- main constructor — used when creating a NEW account ----
   public Account(String ownerName, AccountType accountType, BigDecimal initialDeposit) {
     validate(ownerName);
     validateInitialDeposit(accountType, initialDeposit);
@@ -35,7 +35,7 @@ public class Account implements Serializable {
     this.transactions = new ArrayList<>();
     this.balance = initialDeposit;
     this.accountStatus = AccountStatus.ACTIVE;
-    this.ownerId = null; // set later by service from JWT
+    this.ownerId = null;
     this.transactions.add(new Transaction(
         initialDeposit,
         TransactionType.DEPOSIT,
@@ -43,11 +43,9 @@ public class Account implements Serializable {
         "Initial deposit"));
   }
 
-  // ---- private constructor — used ONLY by reconstitute ----
   private Account() {
   }
 
-  // ---- static factory — used ONLY by mapper to rebuild from DB ----
   public static Account reconstitute(
       String accountId,
       String accountNumber,
@@ -56,7 +54,8 @@ public class Account implements Serializable {
       BigDecimal balance,
       AccountStatus accountStatus,
       LocalDateTime createdAt,
-      List<Transaction> transactions, String ownerId) {
+      List<Transaction> transactions,
+      String ownerId) {
     Account account = new Account();
     account.accountId = accountId;
     account.accountNumber = accountNumber;
@@ -70,17 +69,12 @@ public class Account implements Serializable {
     return account;
   }
 
-  // ---- business methods ----
-
   public void deposit(BigDecimal amount) {
     validateAccountIsActive();
     validateAmount(amount);
     this.balance = this.balance.add(amount);
     this.transactions.add(new Transaction(
-        amount,
-        TransactionType.DEPOSIT,
-        this.balance,
-        "Deposit"));
+        amount, TransactionType.DEPOSIT, this.balance, "Deposit"));
   }
 
   public void withdraw(BigDecimal amount) {
@@ -88,15 +82,12 @@ public class Account implements Serializable {
     validateNotFixedDeposit();
     validateAmount(amount);
     if (amount.compareTo(this.balance) > 0) {
-      throw new InsufficientBalanceException(
+      throw new BankingException(ErrorCode.INSUFFICIENT_BALANCE,
           "Insufficient balance. Available: " + this.balance);
     }
     this.balance = this.balance.subtract(amount);
     this.transactions.add(new Transaction(
-        amount,
-        TransactionType.WITHDRAWAL,
-        this.balance,
-        "Withdrawal"));
+        amount, TransactionType.WITHDRAWAL, this.balance, "Withdrawal"));
   }
 
   public void block() {
@@ -111,32 +102,52 @@ public class Account implements Serializable {
     this.accountStatus = AccountStatus.INACTIVE;
   }
 
-  // ---- private helpers ----
+  public void transferOut(BigDecimal amount) {
+    validateAccountIsActive();
+    validateNotFixedDeposit();
+    validateAmount(amount);
+    if (amount.compareTo(this.balance) > 0) {
+      throw new BankingException(ErrorCode.INSUFFICIENT_BALANCE,
+          "Insufficient balance for transfer. Available: " + this.balance);
+    }
+    this.balance = this.balance.subtract(amount);
+    this.transactions.add(new Transaction(
+        amount, TransactionType.TRANSFER_OUT, this.balance, "Transfer out"));
+  }
+
+  public void transferIn(BigDecimal amount) {
+    validateAccountIsActive();
+    validateNotFixedDeposit();
+    validateAmount(amount);
+    this.balance = this.balance.add(amount);
+    this.transactions.add(new Transaction(
+        amount, TransactionType.TRANSFER_IN, this.balance, "Transfer in"));
+  }
 
   private void validate(String ownerName) {
     if (ownerName == null || ownerName.trim().isEmpty()) {
-      throw new InvalidAccountException(
+      throw new BankingException(ErrorCode.INVALID_ACCOUNT,
           "Owner name cannot be null or blank");
     }
   }
 
   private void validateAmount(BigDecimal amount) {
     if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new InvalidAmountException(
+      throw new BankingException(ErrorCode.INVALID_AMOUNT,
           "Amount must be greater than zero");
     }
   }
 
   private void validateAccountIsActive() {
     if (this.accountStatus != AccountStatus.ACTIVE) {
-      throw new AccountStatusException(
+      throw new BankingException(ErrorCode.INVALID_ACCOUNT_STATUS,
           "Cannot perform transaction on a " + this.accountStatus + " account");
     }
   }
 
   private void validateNotFixedDeposit() {
     if (this.accountType == AccountType.FIXED_DEPOSIT) {
-      throw new AccountStatusException(
+      throw new BankingException(ErrorCode.INVALID_ACCOUNT_STATUS,
           "Withdrawals not allowed on Fixed Deposit accounts before maturity");
     }
   }
@@ -145,7 +156,7 @@ public class Account implements Serializable {
     validateAmount(amount);
     BigDecimal minimumDeposit = getMinimumDeposit(accountType);
     if (amount.compareTo(minimumDeposit) < 0) {
-      throw new InvalidAmountException(
+      throw new BankingException(ErrorCode.INVALID_AMOUNT,
           "Minimum initial deposit for " + accountType +
               " account is " + minimumDeposit);
     }
@@ -162,35 +173,6 @@ public class Account implements Serializable {
   private String generateAccountNumber() {
     return "ACC" + UUID.randomUUID().toString().substring(0, 13).toUpperCase();
   }
-
-  public void transferOut(BigDecimal amount) {
-    validateAccountIsActive();
-    validateNotFixedDeposit();
-    validateAmount(amount);
-    if (amount.compareTo(this.balance) > 0) {
-      throw new InsufficientBalanceException(
-          "Insufficient balance for transfer. Available: " + this.balance);
-    }
-    this.balance = this.balance.subtract(amount);
-    this.transactions.add(new Transaction(
-        amount,
-        TransactionType.TRANSFER_OUT,
-        this.balance,
-        "Transfer out"));
-  }
-
-  public void transferIn(BigDecimal amount) {
-    validateAccountIsActive();
-    validateNotFixedDeposit();
-    validateAmount(amount);
-    this.balance = this.balance.add(amount);
-    this.transactions.add(new Transaction(
-        amount,
-        TransactionType.TRANSFER_IN,
-        this.balance,
-        "Transfer in"));
-  }
-  // ---- getters ----
 
   public String getAccountId() {
     return accountId;

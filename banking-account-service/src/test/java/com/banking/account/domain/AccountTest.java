@@ -1,14 +1,12 @@
 package com.banking.account.domain;
 
-
-import com.banking.common.exception.AccountStatusException;
-import com.banking.common.exception.InsufficientBalanceException;
-import com.banking.common.exception.InvalidAccountException;
-import com.banking.common.exception.InvalidAmountException;
+import com.banking.common.exception.BankingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
 import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class AccountTest {
@@ -44,9 +42,7 @@ class AccountTest {
 
         @Test
         void shouldNotAllowOpeningSavingsAccountWithZeroDeposit() {
-            assertThrows(InvalidAmountException.class, () ->
-                    new Account("John", AccountType.SAVINGS, BigDecimal.ZERO)
-            );
+            assertThrows(BankingException.class, () -> new Account("John", AccountType.SAVINGS, BigDecimal.ZERO));
         }
 
         @Test
@@ -63,14 +59,11 @@ class AccountTest {
 
         @Test
         void shouldThrowExceptionWhenInsufficientBalance() {
-            BigDecimal amount = new BigDecimal("2000.00");
-            assertThrows(InsufficientBalanceException.class, () ->
-                    account.withdraw(amount)
-            );
+            assertThrows(BankingException.class, () -> account.withdraw(new BigDecimal("2000.00")));
         }
 
         @Test
-        void shouldAllowWithdrawingExactBalance() {        // ← ADD HERE
+        void shouldAllowWithdrawingExactBalance() {
             account.withdraw(new BigDecimal("1000.00"));
             assertEquals(new BigDecimal("0.00"), account.getBalance());
         }
@@ -78,19 +71,13 @@ class AccountTest {
         @Test
         void shouldThrowExceptionWhenTransactingOnBlockedAccount() {
             account.block();
-            BigDecimal amount = new BigDecimal("500.00");
-            assertThrows(AccountStatusException.class, () ->
-                    account.deposit(amount)
-            );
+            assertThrows(BankingException.class, () -> account.deposit(new BigDecimal("500.00")));
         }
 
         @Test
-        void shouldThrowExceptionWhenTransactingOnInactiveAccount() {  // ← ADD HERE
+        void shouldThrowExceptionWhenTransactingOnInactiveAccount() {
             account.deactivate();
-            BigDecimal amount = new BigDecimal("500.00");
-            assertThrows(AccountStatusException.class, () ->
-                    account.deposit(amount)
-            );
+            assertThrows(BankingException.class, () -> account.deposit(new BigDecimal("500.00")));
         }
 
         @Test
@@ -117,8 +104,6 @@ class AccountTest {
             assertEquals(TransactionType.WITHDRAWAL,
                     account.getTransactions().get(1).getType());
         }
-
-
     }
 
     @Nested
@@ -127,18 +112,14 @@ class AccountTest {
         @Test
         void shouldCreateCurrentAccountWithMinimumDeposit() {
             Account account = new Account("Business Ltd",
-                    AccountType.CURRENT,
-                    new BigDecimal("10000.00"));
+                    AccountType.CURRENT, new BigDecimal("10000.00"));
             assertEquals(new BigDecimal("10000.00"), account.getBalance());
         }
 
         @Test
         void shouldNotAllowOpeningCurrentAccountBelowMinimum() {
-            BigDecimal amount = new BigDecimal("5000.00");
-            assertThrows(InvalidAmountException.class, () ->
-                    new Account("Business Ltd", AccountType.CURRENT,
-                            amount)
-            );
+            assertThrows(BankingException.class, () -> new Account("Business Ltd", AccountType.CURRENT,
+                    new BigDecimal("5000.00")));
         }
     }
 
@@ -148,27 +129,21 @@ class AccountTest {
         @Test
         void shouldCreateFixedDepositAccountWithMinimumDeposit() {
             Account account = new Account("John",
-                    AccountType.FIXED_DEPOSIT,
-                    new BigDecimal("1000.00"));
+                    AccountType.FIXED_DEPOSIT, new BigDecimal("1000.00"));
             assertEquals(new BigDecimal("1000.00"), account.getBalance());
         }
 
         @Test
         void shouldNotAllowOpeningFixedDepositAccountBelowMinimum() {
-            BigDecimal amount = new BigDecimal("500.00");
-            assertThrows(InvalidAmountException.class, () ->
-                    new Account("John", AccountType.FIXED_DEPOSIT,
-                            amount)
-            );
+            assertThrows(BankingException.class, () -> new Account("John", AccountType.FIXED_DEPOSIT,
+                    new BigDecimal("500.00")));
         }
+
         @Test
         void shouldNotAllowWithdrawalFromFixedDepositAccount() {
-            Account fdAccount = new Account("John", AccountType.FIXED_DEPOSIT,
-                    new BigDecimal("1000.00"));
-            BigDecimal amount = new BigDecimal("500.00");
-            assertThrows(AccountStatusException.class, () ->
-                    fdAccount.withdraw(amount)
-            );
+            Account fdAccount = new Account("John",
+                    AccountType.FIXED_DEPOSIT, new BigDecimal("1000.00"));
+            assertThrows(BankingException.class, () -> fdAccount.withdraw(new BigDecimal("500.00")));
         }
     }
 
@@ -177,39 +152,28 @@ class AccountTest {
 
         @Test
         void shouldThrowExceptionWhenNameIsNull() {
-            BigDecimal amount = new BigDecimal("1000.00");
-            assertThrows(InvalidAccountException.class, () ->
-                    new Account(null, AccountType.SAVINGS,
-                           amount)
-            );
+            assertThrows(BankingException.class, () -> new Account(null, AccountType.SAVINGS,
+                    new BigDecimal("1000.00")));
         }
 
         @Test
         void shouldThrowExceptionWhenNameIsBlank() {
-            BigDecimal amount = new BigDecimal("1000.00");
-            assertThrows(InvalidAccountException.class, () ->
-                    new Account("   ", AccountType.SAVINGS,
-                           amount)
-            );
+            assertThrows(BankingException.class, () -> new Account("   ", AccountType.SAVINGS,
+                    new BigDecimal("1000.00")));
         }
 
         @Test
         void shouldThrowExceptionWhenDepositingZero() {
             Account account = new Account("John", AccountType.SAVINGS,
                     new BigDecimal("1000.00"));
-            assertThrows(InvalidAmountException.class, () ->
-                    account.deposit(BigDecimal.ZERO)
-            );
+            assertThrows(BankingException.class, () -> account.deposit(BigDecimal.ZERO));
         }
 
         @Test
         void shouldThrowExceptionWhenDepositingNegativeAmount() {
             Account account = new Account("John", AccountType.SAVINGS,
                     new BigDecimal("1000.00"));
-            BigDecimal amount = new BigDecimal("-100.00");
-            assertThrows(InvalidAmountException.class, () ->
-                    account.deposit(amount)
-            );
+            assertThrows(BankingException.class, () -> account.deposit(new BigDecimal("-100.00")));
         }
     }
 
@@ -221,8 +185,10 @@ class AccountTest {
 
         @BeforeEach
         void setUp() {
-            sender = new Account("Alice", AccountType.SAVINGS, new BigDecimal("1000.00"));
-            receiver = new Account("Bob", AccountType.SAVINGS, new BigDecimal("500.00"));
+            sender = new Account("Alice", AccountType.SAVINGS,
+                    new BigDecimal("1000.00"));
+            receiver = new Account("Bob", AccountType.SAVINGS,
+                    new BigDecimal("500.00"));
         }
 
         @Test
@@ -253,37 +219,38 @@ class AccountTest {
 
         @Test
         void shouldThrowWhenInsufficientBalanceForTransfer() {
-            assertThrows(InsufficientBalanceException.class,
+            assertThrows(BankingException.class,
                     () -> sender.transferOut(new BigDecimal("2000.00")));
         }
 
         @Test
         void shouldThrowWhenSenderIsBlocked() {
             sender.block();
-            assertThrows(AccountStatusException.class,
+            assertThrows(BankingException.class,
                     () -> sender.transferOut(new BigDecimal("200.00")));
         }
 
         @Test
         void shouldThrowWhenReceiverIsBlocked() {
             receiver.block();
-            assertThrows(AccountStatusException.class,
+            assertThrows(BankingException.class,
                     () -> receiver.transferIn(new BigDecimal("200.00")));
         }
 
         @Test
         void shouldThrowWhenSenderIsFixedDeposit() {
-            Account fd = new Account("Alice", AccountType.FIXED_DEPOSIT, new BigDecimal("1000.00"));
-            assertThrows(AccountStatusException.class,
+            Account fd = new Account("Alice", AccountType.FIXED_DEPOSIT,
+                    new BigDecimal("1000.00"));
+            assertThrows(BankingException.class,
                     () -> fd.transferOut(new BigDecimal("200.00")));
         }
 
         @Test
         void shouldThrowWhenReceiverIsFixedDeposit() {
-            Account fd = new Account("Bob", AccountType.FIXED_DEPOSIT, new BigDecimal("1000.00"));
-            assertThrows(AccountStatusException.class,
+            Account fd = new Account("Bob", AccountType.FIXED_DEPOSIT,
+                    new BigDecimal("1000.00"));
+            assertThrows(BankingException.class,
                     () -> fd.transferIn(new BigDecimal("200.00")));
         }
     }
-
 }
