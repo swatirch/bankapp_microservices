@@ -1,7 +1,5 @@
 services:
 
-  # ── Infrastructure ──────────────────────────────────────────────────────
-
   postgres:
     image: postgres:15-alpine
     container_name: banking-postgres
@@ -69,10 +67,10 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 
-  # ── Services ────────────────────────────────────────────────────────────
-
   discovery-server:
-    build: ./banking-discovery-server
+    build:
+      context: .
+      dockerfile: banking-discovery-server/Dockerfile
     container_name: banking-discovery-server
     ports:
       - "8761:8761"
@@ -83,7 +81,9 @@ services:
       retries: 10
 
   auth-service:
-    build: ./banking-auth-service
+    build:
+      context: .
+      dockerfile: banking-auth-service/Dockerfile
     container_name: banking-auth-service
     ports:
       - "8081:8081"
@@ -99,7 +99,9 @@ services:
         condition: service_healthy
 
   account-service:
-    build: ./banking-account-service
+    build:
+      context: .
+      dockerfile: banking-account-service/Dockerfile
     container_name: banking-account-service
     ports:
       - "8082:8082"
@@ -121,7 +123,9 @@ services:
         condition: service_healthy
 
   transaction-service:
-    build: ./banking-transaction-service
+    build:
+      context: .
+      dockerfile: banking-transaction-service/Dockerfile
     container_name: banking-transaction-service
     ports:
       - "8083:8083"
@@ -140,7 +144,9 @@ services:
         condition: service_healthy
 
   notification-service:
-    build: ./banking-notification-service
+    build:
+      context: .
+      dockerfile: banking-notification-service/Dockerfile
     container_name: banking-notification-service
     ports:
       - "8084:8084"
@@ -154,7 +160,9 @@ services:
         condition: service_healthy
 
   api-gateway:
-    build: ./banking-api-gateway
+    build:
+      context: .
+      dockerfile: banking-api-gateway/Dockerfile
     container_name: banking-api-gateway
     ports:
       - "8080:8080"
