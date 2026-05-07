@@ -7,9 +7,8 @@ COPY banking-common/pom.xml ./banking-common/pom.xml
 COPY banking-common/src ./banking-common/src
 RUN mvn install -f banking-common/pom.xml -DskipTests
 
-# Build service
+# Build service — no dependency cache, always fresh
 COPY banking-api-gateway/pom.xml ./banking-api-gateway/pom.xml
-RUN mvn dependency:go-offline -B -f banking-api-gateway/pom.xml
 COPY banking-api-gateway/src ./banking-api-gateway/src
 RUN mvn clean package -DskipTests -f banking-api-gateway/pom.xml
 

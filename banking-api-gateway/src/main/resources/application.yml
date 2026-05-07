@@ -53,6 +53,28 @@ spring:
                 redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@ipKeyResolver}"
 
+        # Swagger API docs proxy routes
+        - id: auth-service-docs
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/v3/api-docs/auth-service
+          filters:
+            - RewritePath=/v3/api-docs/auth-service, /v3/api-docs
+
+        - id: account-service-docs
+          uri: http://account-service:8082
+          predicates:
+            - Path=/v3/api-docs/account-service
+          filters:
+            - RewritePath=/v3/api-docs/account-service, /v3/api-docs
+
+        - id: transaction-service-docs
+          uri: http://transaction-service:8083
+          predicates:
+            - Path=/v3/api-docs/transaction-service
+          filters:
+            - RewritePath=/v3/api-docs/transaction-service, /v3/api-docs
+
 server:
   port: 8080
 
@@ -71,3 +93,34 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     com.banking.gateway: DEBUG
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Auth Service
+        url: /v3/api-docs/auth-service
+      - name: Account Service
+        url: /v3/api-docs/account-service
+      - name: Transaction Service
+        url: /v3/api-docs/transaction-service
+
+  api-docs:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
