@@ -1,0 +1,397 @@
+====================================================
+1. ENCAPSULATION
+====================================================
+
+WHAT TO STUDY
+- What is encapsulation
+- Data hiding
+- Private variables
+- Getter/setter methods
+- Controlled access
+- Immutable encapsulation
+- Validation inside setters
+- Encapsulation in layered architecture
+
+INTERNAL UNDERSTANDING
+- Why direct field access is dangerous
+- How encapsulation protects object state
+- Why setters can contain business logic
+
+REAL BACKEND/BANKING EXAMPLES
+- BankAccount balance should not be modified directly
+- Payment status should not be externally editable
+- Loan approval amount validation
+
+INTERVIEW QUESTIONS
+- Difference between abstraction and encapsulation
+- Why encapsulation improves maintainability
+- Why public variables are dangerous
+
+====================================================
+2. ABSTRACTION
+====================================================
+
+WHAT TO STUDY
+- What is abstraction
+- Hiding implementation details
+- Abstract classes
+- Interfaces
+- Real-world abstraction
+- High-level vs low-level design
+
+INTERNAL UNDERSTANDING
+- Client should only know WHAT system does
+- Client should not know HOW internally implemented
+
+REAL BACKEND/BANKING EXAMPLES
+- PaymentService:
+    processPayment()
+
+Internally may use:
+- UPI
+- Card
+- Net banking
+- Wallet
+
+Caller only cares:
+"payment processed"
+
+INTERVIEW QUESTIONS
+- Why abstraction important in large systems
+- Difference between abstraction and encapsulation
+- Real-world abstraction example
+
+====================================================
+3. INHERITANCE
+====================================================
+
+WHAT TO STUDY
+- IS-A relationship
+- extends keyword
+- Parent-child relationship
+- Constructor chaining
+- super keyword
+- Method inheritance
+- Protected access modifier
+
+INTERNAL UNDERSTANDING
+- Code reuse
+- Hierarchical modeling
+- Tight coupling problems
+
+REAL BANKING EXAMPLES
+- Account
+    -> SavingsAccount
+    -> CurrentAccount
+
+INTERVIEW QUESTIONS
+- Problems with deep inheritance hierarchy
+- Why inheritance can become tightly coupled
+- Constructor execution order
+
+IMPORTANT
+Do NOT overuse inheritance in modern backend systems.
+
+====================================================
+4. POLYMORPHISM
+====================================================
+
+WHAT TO STUDY
+- One interface multiple implementations
+- Runtime polymorphism
+- Compile-time polymorphism
+- Dynamic method dispatch
+- Upcasting
+
+RUNTIME POLYMORPHISM
+- Method overriding
+
+COMPILE-TIME POLYMORPHISM
+- Method overloading
+
+REAL BANKING EXAMPLES
+PaymentService:
+- UpiPayment
+- CardPayment
+- WalletPayment
+
+Same method:
+processPayment()
+
+Different behavior.
+
+INTERVIEW QUESTIONS
+- How runtime polymorphism works internally
+- Dynamic dispatch explanation
+- Why polymorphism improves extensibility
+
+====================================================
+5. COMPOSITION vs INHERITANCE
+====================================================
+
+VERY IMPORTANT FOR SENIOR INTERVIEWS
+
+WHAT TO STUDY
+- HAS-A vs IS-A relationship
+- Loose coupling
+- Reusability
+- Flexibility
+- Dependency injection relation
+
+INHERITANCE
+Account extends User
+
+COMPOSITION
+Account HAS-A NotificationService
+
+WHY COMPOSITION PREFERRED
+- Less tightly coupled
+- Easier testing
+- More flexible
+- Better maintainability
+
+REAL BACKEND EXAMPLES
+OrderService HAS-A:
+- PaymentService
+- NotificationService
+- FraudService
+
+INTERVIEW QUESTIONS
+- Why composition preferred over inheritance
+- Problems with inheritance
+- Real production example
+
+====================================================
+6. SOLID PRINCIPLES
+====================================================
+
+VERY VERY IMPORTANT
+
+----------------------------------------------------
+S — SINGLE RESPONSIBILITY PRINCIPLE
+----------------------------------------------------
+
+WHAT TO STUDY
+- One class one responsibility
+- Separation of concerns
+
+BAD
+PaymentService:
+- payment
+- logging
+- notification
+- validation
+
+GOOD
+Separate services.
+
+INTERVIEW QUESTIONS
+- Benefits of SRP
+- Real-world SRP violations
+
+----------------------------------------------------
+O — OPEN CLOSED PRINCIPLE
+----------------------------------------------------
+
+WHAT TO STUDY
+- Open for extension
+- Closed for modification
+
+REAL EXAMPLE
+New payment method added without changing old code.
+
+INTERVIEW QUESTIONS
+- How polymorphism supports OCP
+
+----------------------------------------------------
+L — LISKOV SUBSTITUTION PRINCIPLE
+----------------------------------------------------
+
+WHAT TO STUDY
+- Child should properly replace parent
+- Behavioral compatibility
+
+BAD EXAMPLE
+Bird -> Penguin cannot fly()
+
+INTERVIEW QUESTIONS
+- Real-world LSP violation
+
+----------------------------------------------------
+I — INTERFACE SEGREGATION PRINCIPLE
+----------------------------------------------------
+
+WHAT TO STUDY
+- Small focused interfaces
+- Avoid fat interfaces
+
+BAD
+PaymentInterface:
+- pay()
+- refund()
+- loan()
+- emi()
+
+GOOD
+Separate interfaces.
+
+----------------------------------------------------
+D — DEPENDENCY INVERSION PRINCIPLE
+----------------------------------------------------
+
+VERY IMPORTANT FOR SPRING
+
+WHAT TO STUDY
+- Depend on abstraction not implementation
+- Interface-driven development
+- Dependency Injection
+
+REAL BACKEND EXAMPLE
+OrderService depends on:
+PaymentService interface
+
+NOT:
+RazorpayPaymentService directly
+
+INTERVIEW QUESTIONS
+- How Spring uses DIP
+- Why DIP improves testing
+
+====================================================
+7. INTERFACE vs ABSTRACT CLASS
+====================================================
+
+WHAT TO STUDY
+- Purpose differences
+- Multiple inheritance
+- Default methods
+- Partial abstraction
+- State management
+
+INTERFACE
+- contract
+- behavior specification
+
+ABSTRACT CLASS
+- common base behavior
+
+WHEN TO USE INTERFACE
+- multiple implementations
+- loose coupling
+- extensibility
+
+WHEN TO USE ABSTRACT CLASS
+- shared logic/state
+
+REAL BANKING EXAMPLE
+Interface:
+PaymentProcessor
+
+Implementations:
+- UpiProcessor
+- CardProcessor
+
+INTERVIEW QUESTIONS
+- Interface vs abstract class
+- Why interfaces heavily used in Spring
+
+====================================================
+8. METHOD OVERLOADING vs OVERRIDING
+====================================================
+
+----------------------------------------------------
+OVERLOADING
+----------------------------------------------------
+
+WHAT TO STUDY
+- Same method name
+- Different parameters
+- Compile-time polymorphism
+
+REAL EXAMPLE
+transfer(amount)
+transfer(amount, remarks)
+
+----------------------------------------------------
+OVERRIDING
+----------------------------------------------------
+
+WHAT TO STUDY
+- Child changes parent behavior
+- Runtime polymorphism
+- @Override annotation
+
+REAL EXAMPLE
+SavingsAccount:
+calculateInterest()
+
+CurrentAccount:
+calculateInterest()
+
+INTERVIEW QUESTIONS
+- Runtime vs compile-time binding
+- Overloading resolution
+- Overriding rules
+
+====================================================
+9. IMMUTABLE OBJECTS
+====================================================
+
+EXTREMELY IMPORTANT FOR FINTECH
+
+WHAT TO STUDY
+- What is immutable object
+- final keyword
+- No setters
+- Constructor initialization
+- Defensive copying
+
+WHY IMPORTANT
+- Thread safety
+- Predictability
+- Safer concurrency
+- Reliable transactions
+
+REAL FINTECH EXAMPLES
+- Transaction records
+- Ledger entries
+- Payment events
+- Audit logs
+
+WHY STRING IMMUTABLE
+- Security
+- Thread safety
+- String pool optimization
+- Hashcode caching
+
+INTERVIEW QUESTIONS
+- How to create immutable class
+- Why immutability important
+- Benefits in concurrent systems
+
+====================================================
+MOST IMPORTANT TOPICS FOR PRODUCT/FINTECH INTERVIEWS
+====================================================
+
+TOP PRIORITY
+- SOLID principles
+- Composition vs inheritance
+- Polymorphism
+- Interface vs abstract class
+- Immutable objects
+
+MEDIUM PRIORITY
+- Encapsulation
+- Abstraction
+- Inheritance
+
+VERY IMPORTANT EXPECTATION
+Do NOT just memorize definitions.
+
+You must explain:
+- WHY concept exists
+- WHAT problem it solves
+- WHERE used in backend systems
+- WHEN to use
+- WHEN NOT to use
+- Tradeoffs
